@@ -2,7 +2,9 @@ from fastapi import FastAPI, HTTPException
 from src.asr_model import transcribe_audio
 from src.db.database import file_exists, get_all_audio_filenames, get_audio
 from src.model import AudioRequest, ExamplesResponse, TranscriptionResponse
-import os 
+import os
+
+from src.utils.preprocess import preprocess 
 
 app = FastAPI(title="Audio Transcription with Whisper")
 
@@ -45,7 +47,14 @@ def transcribe_example(request: AudioRequest):
 
     audio_data = get_audio(request.filename)
 
-    metadata = transcribe_audio(audio_data)
+    try:
+        waveform = preprocess(audio_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing audio file: {str(e)}")
+    finally:
+        audio_data.close()
+
+    metadata = transcribe_audio(waveform)
 
     return TranscriptionResponse(filename=request.filename, metadata=metadata)
 
