@@ -1,4 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from src.asr_model import transcribe_audio
 from src.db.database import file_exists, get_all_audio_filenames, get_audio
 from src.model import AudioRequest, ExamplesResponse, TranscriptionResponse
@@ -7,6 +10,13 @@ import os
 from src.utils.preprocess import preprocess 
 
 app = FastAPI(title="Audio Transcription with Whisper")
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+@app.get("/", include_in_schema=False)
+def home():
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/health")
@@ -62,8 +72,6 @@ def transcribe_example(request: AudioRequest):
 @app.post("/transcribe")
 def transcribe_upload(file: UploadFile):
     MAX_UPLOAD_BYTES = 25 * 1024 * 1024
-
-   
 
     try:
         # empty file check

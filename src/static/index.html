@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Audio Transcription</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/script.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><p class="eyebrow">SPEECH TO TEXT</p><h1>Audio Transcription</h1><p>Choose an example or upload a recording to try Whisper.</p></header>
+    <div class="source-picker">
+      <label for="source">Audio source</label>
+      <select id="source" aria-controls="example-form upload-form">
+        <option value="example">Example audio</option>
+        <option value="upload">Upload a file</option>
+      </select>
+    </div>
+    <div class="inputs">
+      <form id="example-form">
+        <h2>Try an example</h2>
+        <label for="examples">Example recording</label>
+        <select id="examples" required disabled><option value="">Loading examples…</option></select>
+        <button type="submit" disabled>Transcribe example</button>
+      </form>
+      <form id="upload-form" hidden>
+        <h2>Upload a recording</h2>
+        <label for="audio">Audio or video file</label>
+        <input id="audio" type="file" accept=".flac,.mp3,.wav,.m4a,.mp4" required>
+        <p class="hint">FLAC, MP3, WAV, M4A or MP4 · Maximum 25 MiB</p>
+        <details class="audio-sources">
+          <summary>Need a recording? Find sample audio</summary>
+          <ul>
+            <li><a href="https://github.com/SYSTRAN/faster-whisper/tree/master/tests/data" target="_blank" rel="noopener noreferrer">faster-whisper test clips</a> — individual files; open a file and select Download raw file.</li>
+            <li><a href="https://www.openslr.org/12" target="_blank" rel="noopener noreferrer">LibriSpeech</a> — English audiobook speech with reference transcripts, downloaded as dataset archives.</li>
+            <li><a href="https://commons.wikimedia.org/wiki/Category:Audio_files_of_speeches" target="_blank" rel="noopener noreferrer">Wikimedia Commons speeches</a> — check each recording’s duration and licence.</li>
+          </ul>
+          <p class="hint">Download a short clip, then choose it above. Start with the faster-whisper test clips.</p>
+        </details>
+        <button type="submit">Transcribe upload</button>
+      </form>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+    <section id="results" hidden aria-labelledby="result-title">
+      <h2 id="result-title">Transcript</h2>
+      <p id="info" class="hint"></p>
+      <p id="transcript"></p>
+      <details><summary>Timestamped segments</summary><ul id="segments"></ul></details>
+    </section>
+  </main>
+</body>
+</html>
