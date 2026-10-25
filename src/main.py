@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from src.asr_model import transcribe_audio
 from src.db.database import file_exists, get_all_audio_filenames, get_audio
 from src.model import AudioRequest, ExamplesResponse, TranscriptionResponse
@@ -58,3 +58,29 @@ def transcribe_example(request: AudioRequest):
 
     return TranscriptionResponse(filename=request.filename, metadata=metadata)
 
+
+@app.post("/transcribe")
+def transcribe_upload(file: UploadFile):
+    MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
+   
+
+    try:
+        # empty file check
+        if file.filename == "":
+            raise HTTPException(status_code=400, detail="No file uploaded")
+
+        # supported file type check
+        if not file.filename.endswith((".flac", ".mp3", ".wav", ".m4a", ".mp4")):
+            raise HTTPException(status_code=400, detail="Invalid file format. Please upload a .flac, .mp3, or .wav file.")
+
+        # file size check
+        if file.size is not None and file.size > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=400, detail="File size exceeds the maximum limit of 25 MB.") 
+
+        waveform = preprocess(file.file)
+        metadata = transcribe_audio(waveform)
+
+        return TranscriptionResponse(filename=file.filename, metadata=metadata)
+    finally:
+        file.file.close()
