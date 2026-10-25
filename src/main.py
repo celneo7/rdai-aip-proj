@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from src.model import transcribe_audio
+from src.asr_model import transcribe_audio
+from src.db.database import file_exists, get_all_audio_filenames, get_audio
+from src.model import AudioRequest, ExamplesResponse, TranscriptionResponse
 import os 
 
 app = FastAPI(title="Audio Transcription with Whisper")
@@ -10,33 +12,40 @@ def health():
     return {"status": "ok", "model_loaded": True}
 
 
-@app.get("/examples")
+@app.get("/examples", response_model=ExamplesResponse)
 def list_examples():
-    folder_path = "data/examples"
-    files = [f for f in os.listdir(folder_path) if f.endswith((".flac", ".mp3", ".wav"))]
+    # folder_path = "data/examples"
+    # files = [f for f in os.listdir(folder_path) if f.endswith((".flac", ".mp3", ".wav"))]
 
-    audio_meta = [
-        {
-            "id": i,
-            "file_name": audio_file,
-        }
-        for i, audio_file in enumerate(files)
-    ]
-    return {"audio_files": audio_meta}
+    # audio_meta = [
+    #     {
+    #         "id": i,
+    #         "file_name": audio_file,
+    #     }
+    #     for i, audio_file in enumerate(files)
+    # ]
+    # return {"audio_files": audio_meta}
 
+    return {"audio_files": get_all_audio_filenames()}
 
 @app.post("/transcribe-example")
-def transcribe_example(number: int):
-    folder_path = "data/examples"
-    audio_files = [f for f in os.listdir(folder_path) if f.endswith((".flac", ".mp3", ".wav"))]
+def transcribe_example(request: AudioRequest):
+    # folder_path = "data/examples"
+    # audio_files = [f for f in os.listdir(folder_path) if f.endswith((".flac", ".mp3", ".wav"))]
 
-    if number < 0 or number >= len(audio_files):
-        raise HTTPException(status_code=400, detail=f"Invalid number. Please provide a number between 0 and {len(audio_files) - 1}.")
+    # if number < 0 or number >= len(audio_files):
+    #     raise HTTPException(status_code=400, detail=f"Invalid number. Please provide a number between 0 and {len(audio_files) - 1}.")
 
-    audio_file = audio_files[number]
-    file_path = os.path.join(folder_path, audio_file)
+    # audio_file = audio_files[number]
+    # file_path = os.path.join(folder_path, audio_file)
 
-    metadata = transcribe_audio(file_path)
+    file = request.filename
+    if not file_exists(file):
+        raise HTTPException(status_code=404, detail="Audio File not found")
 
-    return {"audio_file": audio_file, "metadata": metadata}
+    audio_data = get_audio(request.filename)
+
+    metadata = transcribe_audio(audio_data)
+
+    return TranscriptionResponse(filename=request.filename, metadata=metadata)
 
